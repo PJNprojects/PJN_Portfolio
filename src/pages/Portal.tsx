@@ -23,7 +23,7 @@ export default function Portal() {
     if (!hasFirebase) return;
     (async () => {
       const { getAuth, isSignInWithEmailLink, signInWithEmailLink, onAuthStateChanged } = await import('firebase/auth');
-      const auth = getAuth(firebaseApp());
+      const auth = getAuth(await firebaseApp());
       if (isSignInWithEmailLink(auth, window.location.href)) {
         const saved = window.localStorage.getItem('pjn-signin-email') || window.prompt('Confirm your email to finish signing in') || '';
         try {
@@ -38,7 +38,7 @@ export default function Portal() {
         setUser(u?.email ?? null);
         if (!u?.email) return;
         const { getFirestore, collection, query, where, getDocs } = await import('firebase/firestore');
-        const snap = await getDocs(query(collection(getFirestore(firebaseApp()), 'projects'), where('clientEmail', '==', u.email)));
+        const snap = await getDocs(query(collection(getFirestore(await firebaseApp()), 'projects'), where('clientEmail', '==', u.email)));
         setProjects(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Project, 'id'>) })));
       });
     })();
@@ -48,7 +48,7 @@ export default function Portal() {
     e.preventDefault();
     const { getAuth, sendSignInLinkToEmail } = await import('firebase/auth');
     try {
-      await sendSignInLinkToEmail(getAuth(firebaseApp()), email, { url: window.location.origin + '/portal', handleCodeInApp: true });
+      await sendSignInLinkToEmail(getAuth(await firebaseApp()), email, { url: window.location.origin + '/portal', handleCodeInApp: true });
       window.localStorage.setItem('pjn-signin-email', email);
       setStatus('Check your mail for a sign-in link.');
     } catch {
@@ -58,14 +58,14 @@ export default function Portal() {
 
   async function signOut() {
     const { getAuth } = await import('firebase/auth');
-    await getAuth(firebaseApp()).signOut();
+    await getAuth(await firebaseApp()).signOut();
     setProjects([]);
   }
 
   return (
     <>
+      <Nav onHome={false} />
       <main>
-        <Nav onHome={false} />
         <section className="portal">
           <h1 className="poster">Your project</h1>
           {!hasFirebase && (
@@ -74,7 +74,7 @@ export default function Portal() {
           {hasFirebase && !user && (
             <>
               <p className="lead">Sign in with the email we have for you. No password: we send a link.</p>
-              <form onSubmit={sendLink} className="line">
+              <form onSubmit={sendLink}>
                 <label htmlFor="portal-email">Email</label>
                 <input id="portal-email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
                 <button className="btn" type="submit">Send me a link</button>

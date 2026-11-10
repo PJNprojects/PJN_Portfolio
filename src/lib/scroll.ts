@@ -1,15 +1,15 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 import Lenis from 'lenis';
 
-gsap.registerPlugin(ScrollTrigger, DrawSVGPlugin);
+gsap.registerPlugin(ScrollTrigger);
 
-export const prefersReducedMotion = () =>
-  typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const matches = (query: string) => typeof window !== 'undefined' && window.matchMedia(query).matches;
 
-export const isTouch = () =>
-  typeof window !== 'undefined' && window.matchMedia('(hover: none), (pointer: coarse)').matches;
+export const prefersReducedMotion = () => matches('(prefers-reduced-motion: reduce)');
+export const isTouch = () => matches('(hover: none), (pointer: coarse)');
+/** A mouse or trackpad: hover effects and pointer-follow are only worth running here. */
+export const hasFinePointer = () => matches('(hover: hover) and (pointer: fine)');
 
 let lenis: Lenis | null = null;
 
@@ -22,11 +22,12 @@ export function startSmoothScroll() {
   gsap.ticker.lagSmoothing(0);
 }
 
-export function scrollTo(target: string) {
-  const el = document.querySelector(target);
+/** Scroll to a selector or an element. Sections carry their own top padding, so they land at the top. */
+export function scrollTo(target: string | Element) {
+  const el = typeof target === 'string' ? document.querySelector(target) : target;
   if (!el) return;
   if (lenis) lenis.scrollTo(el as HTMLElement);
-  else el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  else el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
 }
 
 export { gsap, ScrollTrigger };

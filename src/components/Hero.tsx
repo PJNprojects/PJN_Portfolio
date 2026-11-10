@@ -1,95 +1,83 @@
-import { useLayoutEffect, useRef, useState } from 'react';
-import Nav from './Nav';
-import DeviceDrawing from './DeviceDrawing';
+import { useLayoutEffect, useRef } from 'react';
 import { hero, site } from '../content/site';
-import { gsap, ScrollTrigger, prefersReducedMotion, scrollTo, isTouch } from '../lib/scroll';
+import { gsap, hasFinePointer, prefersReducedMotion, scrollTo } from '../lib/scroll';
+import { useMagnet } from '../lib/useMagnet';
 
 /**
- * The hero is a scroll scene: the stage holds still for three screens while the device is
- * sketched, filled and closed. Without script or with reduced motion it is an ordinary first
- * screen showing the finished composition.
+ * First screen as a poster: "Idea in." top left, "Device out." bottom right, the device between
+ * them. The picture drifts with the pointer and sinks away as the page scrolls.
  */
 export default function Hero() {
-  const scene = useRef<HTMLElement>(null);
-  // Decided before the first paint so the scene's height is right when ScrollTrigger measures it.
-  const [live] = useState(() => !prefersReducedMotion());
+  const root = useRef<HTMLElement>(null);
+  const cta = useMagnet<HTMLAnchorElement>();
 
   useLayoutEffect(() => {
-    const root = scene.current;
-    if (!root || !live) return;
+    const el = root.current;
+    if (!el || prefersReducedMotion()) return;
 
     const ctx = gsap.context(() => {
-      const q = gsap.utils.selector(root);
-      const parts = q<SVGGElement>('.part');
-      const sk = q<SVGGeometryElement>('.sk');
-      const ink = q<SVGElement>('.ink');
-      const caps = q<HTMLElement>('.captions p');
-
-      gsap.set(sk, { drawSVG: '0%' });
-
+      const q = gsap.utils.selector(el);
+      // Scroll: the picture sinks and the two halves of the headline pull apart.
       const tl = gsap.timeline({
         defaults: { ease: 'none' },
-        scrollTrigger: {
-          trigger: root,
-          start: 'top top',
-          end: 'bottom bottom',
-          scrub: isTouch() ? true : 0.5,
-          invalidateOnRefresh: true,
-        },
+        scrollTrigger: { trigger: el, start: 'top top', end: 'bottom top', scrub: true },
       });
+      tl.to(q('.hero-pic'), { yPercent: 14, scale: 1.08 }, 0)
+        .to(q('.l1'), { xPercent: -6 }, 0)
+        .to(q('.l2'), { xPercent: 6 }, 0)
+        .to(q('.hero-sticker'), { yPercent: -60 }, 0);
+    }, el);
 
-      // 0–0.10: the first statement and its support step aside
-      tl.to(q('.l1, .support, .cue'), { opacity: 0, y: -20, duration: 0.1 }, 0);
+    // Pointer: the device leans a few pixels toward the cursor.
+    let off = () => {};
+    if (hasFinePointer()) {
+      const img = el.querySelector<HTMLElement>('.hero-pic img');
+      if (img) {
+        const x = gsap.quickTo(img, 'x', { duration: 0.9, ease: 'power3.out' });
+        const y = gsap.quickTo(img, 'y', { duration: 0.9, ease: 'power3.out' });
+        const move = (e: PointerEvent) => {
+          x((e.clientX / window.innerWidth - 0.5) * -28);
+          y((e.clientY / window.innerHeight - 0.5) * -18);
+        };
+        el.addEventListener('pointermove', move);
+        off = () => el.removeEventListener('pointermove', move);
+      }
+    }
+    return () => { off(); ctx.revert(); };
+  }, []);
 
-      // 0.08–0.42: the sketch is drawn, one part after another
-      tl.to(sk, { drawSVG: '100%', duration: 0.26, stagger: { each: 0.012, from: 'end' } }, 0.08);
-      tl.to(caps[0], { opacity: 1, duration: 0.05 }, 0.12).to(caps[0], { opacity: 0, duration: 0.05 }, 0.38);
-
-      // 0.42–0.58: the drawing fills in
-      tl.to(ink, { fillOpacity: 1, strokeOpacity: 1, duration: 0.12 }, 0.42);
-      tl.to(sk, { opacity: 0, duration: 0.08 }, 0.48);
-      tl.to(caps[1], { opacity: 1, duration: 0.05 }, 0.45).to(caps[1], { opacity: 0, duration: 0.05 }, 0.70);
-
-      // 0.60–0.85: the parts close into one device
-      tl.to(parts, {
-        y: (_i, el) => Number((el as SVGGElement).dataset.y || 0),
-        duration: 0.25,
-        ease: 'power2.inOut',
-      }, 0.60);
-
-      // 0.78–1: the finished device, and the statement completed
-      tl.to(caps[2], { opacity: 1, duration: 0.06 }, 0.78);
-      tl.to(q('.l1'), { opacity: 1, y: 0, duration: 0.1 }, 0.86);
-      tl.to(q('.l2'), { opacity: 1, y: 0, duration: 0.1 }, 0.9);
-    }, root);
-
-    ScrollTrigger.refresh();
-    document.fonts?.ready.then(() => ScrollTrigger.refresh());
-    return () => ctx.revert();
-  }, [live]);
+  const p = hero.picture;
+  const jump = (href: string) => (e: React.MouseEvent) => { e.preventDefault(); scrollTo(href); };
 
   return (
-    <section ref={scene} className={'scene' + (live ? ' live' : '')} aria-label="Introduction">
-      <div className="stage">
-        <Nav />
-        <div className="stage-mid">
-          <h1>
-            <span className="l1">{hero.line1}</span>
-            <span className="l2">{hero.line2}</span>
-          </h1>
-          <div className="device">
-            <DeviceDrawing id="hero-device" />
-          </div>
-        </div>
-        <div className="stage-foot">
-          <p className="support">{site.description}</p>
-          <div className="captions" aria-hidden="true">
-            {hero.captions.map((c) => <p key={c}>{c}</p>)}
-          </div>
-          <a className="btn" href="#brief" onClick={(e) => { e.preventDefault(); scrollTo('#brief'); }}>{hero.cta}</a>
-          <p className="cue">{hero.scrollCue}</p>
+    <section ref={root} className="hero" aria-label="Introduction">
+      <div className="hero-pic">
+        <img src={p.src} srcSet={p.srcSet} sizes="(max-width: 760px) 100vw, 112vw" width={p.width} height={p.height}
+          alt={p.alt} fetchPriority="high" decoding="async" />
+      </div>
+
+      <div className="hero-top">
+        <h1>
+          <span className="line l1"><span>{hero.line1}</span></span>
+          <span className="line l2"><span>{hero.line2}</span></span>
+        </h1>
+        <p className="hero-support">{site.description}</p>
+        <div className="hero-acts">
+          <a ref={cta} className="btn" href="#brief" onClick={jump('#brief')}>{hero.cta}</a>
+          <a className="link" href="#work" onClick={jump('#work')}>{hero.second}</a>
         </div>
       </div>
+
+      <a className="hero-sticker" href="#work" onClick={jump('#work')} aria-label="Scroll down to see the collar taken apart">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <defs><path id="sticker-ring" d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0" /></defs>
+          <circle cx="60" cy="60" r="60" className="disc" />
+          <g className="ring">
+            <text><textPath href="#sticker-ring" textLength="270" lengthAdjust="spacing">{hero.sticker}</textPath></text>
+          </g>
+          <path className="arrow" d="M60 42v32M47 62l13 13 13-13" />
+        </svg>
+      </a>
     </section>
   );
 }
