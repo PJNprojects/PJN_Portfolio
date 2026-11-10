@@ -30,4 +30,10 @@ export function scrollTo(target: string | Element) {
   else el.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
 }
 
+/** Jump to the top of the page at once (used when the route changes). */
+export function resetScroll() {
+  if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
+  window.scrollTo(0, 0);
+}
+
 export { gsap, ScrollTrigger };

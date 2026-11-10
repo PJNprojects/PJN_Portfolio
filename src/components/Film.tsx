@@ -2,10 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { film } from '../content/site';
 import { useReveal } from '../lib/useReveal';
 import { prefersReducedMotion } from '../lib/scroll';
+import { Silk, Traces } from './board';
 
 /**
- * The explainer film. It has no sound, loads only when it is about to be seen, plays while it is
- * on screen and stops when it is not. The chapter buttons jump to each part of the argument.
+ * The explainer film, shown on an LCD module sized so the whole screen and its keys fit in the
+ * window. It has no sound, loads only when it is about to be seen, plays while it is on screen and
+ * stops when it is not. The four keys jump to each part of the argument.
  */
 export default function Film() {
   const head = useReveal<HTMLDivElement>();
@@ -67,14 +69,20 @@ export default function Film() {
   };
 
   return (
-    <section className="film" id="film">
+    <section className="film board" id="film">
+      <Traces seed={19} fill={0.4} />
       <div className="film-head reveal" ref={head}>
+        <Silk mark="LCD1">Explainer</Silk>
         <h2 className="poster">{film.heading}</h2>
         <p className="lead">{film.text}</p>
       </div>
 
-      <figure className="film-stage">
-        <div className="film-screen">
+      {/* A display module: header pins, the glass, and four keys that jump between chapters. */}
+      <figure className="tft" data-ui>
+        <div className="tft-pins" aria-hidden="true">
+          {['GND', 'VCC', 'SCL', 'SDA', 'RES', 'DC', 'CS', 'BL'].map((pin) => <span key={pin}>{pin}</span>)}
+        </div>
+        <div className="tft-glass">
           <video ref={video} src={film.src} poster={film.poster} width={film.width} height={film.height}
             muted loop playsInline preload="none" onClick={toggle} aria-label={film.heading} />
           <button type="button" className={'film-play' + (playing ? ' is-playing' : '')} onClick={toggle}>
@@ -82,16 +90,14 @@ export default function Film() {
           </button>
           <div className="film-progress" aria-hidden="true"><div ref={bar} /></div>
         </div>
-        <div className="film-foot">
-          <div className="chips" role="group" aria-label="Chapters">
-            {film.chapters.map((c, i) => (
-              <button key={c.label} type="button" className="chip" aria-pressed={i === chapter} onClick={() => jump(c.at)}>
-                {c.label}
-              </button>
-            ))}
-          </div>
-          <figcaption>{film.caption}</figcaption>
+        <div className="tft-keys" role="group" aria-label="Chapters">
+          {film.chapters.map((c, i) => (
+            <button key={c.label} type="button" className="key" aria-pressed={i === chapter} onClick={() => jump(c.at)}>
+              <i aria-hidden="true" />{c.label}
+            </button>
+          ))}
         </div>
+        <figcaption>{film.caption}</figcaption>
       </figure>
     </section>
   );

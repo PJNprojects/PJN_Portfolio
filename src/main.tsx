@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, MemoryRouter } from 'react-router-dom';
 import App from './App';
 import '@fontsource-variable/bricolage-grotesque/opsz.css';
+import '@fontsource-variable/jetbrains-mono/wght.css';
 import './styles/global.css';
 
 // The single-file preview build is opened from an arbitrary path, so it routes in memory.

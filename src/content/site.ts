@@ -17,11 +17,13 @@ const picture = (name: string, large: number, small: number, ratio: number, alt:
 export const site = {
   name: 'Panchajanyam',
   email: 'projects.pjn@gmail.com',
+  // WhatsApp and phone. Digits only with the country code (91 = India), no plus sign or spaces.
+  phone: '919701522230',
+  phoneShown: '+91 97015 22230',
   description:
     'Panchajanyam is an embedded engineering studio. You bring the idea. We design the circuit board, write the firmware, build the enclosure and get it made.',
   nav: [
-    { label: 'Work', href: '#work' },
-    { label: 'Lab', href: '#lab' },
+    { label: 'Projects', href: '#projects' },
     { label: 'Process', href: '#process' },
     { label: 'About', href: '#about' },
   ],
@@ -34,8 +36,10 @@ export const hero = {
   line1: 'Idea in.',
   line2: 'Device out.',
   cta: 'Tell us your idea',
-  second: 'See the collar we built for Markwave',
-  sticker: 'Scroll down · Open it up · ',
+  second: 'Tune in to our work',
+  // Silkscreen beside the picture: the reference designator and what the part is.
+  mark: 'U1',
+  markText: 'Collar enclosure, built for Markwave',
   picture: picture('collar-enclosure', 1536, 900, 1024 / 1536, 'A matte black collar enclosure with two strap slots, seen from above at an angle'),
 };
 
@@ -84,22 +88,46 @@ export const work = {
   ],
 };
 
-export const lab = {
-  heading: 'Tune the antenna yourself',
-  text:
-    'A reader coil only reaches the chip when it resonates with the signal that drives it. Slide the capacitor until the trace swells. That is the job we do on the bench, with a real scope.',
-  drive: 133.33, // kHz, as measured on the bench
-  control: 'Tuning capacitor',
-  less: 'Less capacitance',
-  more: 'More capacitance',
-  readouts: { resonance: 'Coil resonates at', drive: 'Driven at', signal: 'Signal at the chip' },
-  states: {
-    off: 'Off tune. The chip hears nothing.',
-    near: 'Getting warmer.',
-    locked: 'In tune. The chip answers.',
+// Each project sits on its own frequency. A visitor opens it by tuning the coil to that frequency.
+// To add a project: add an entry here, give it a free frequency between 100 and 170 kHz, and add
+// its page and route (see src/pages/Markwave.tsx and src/App.tsx).
+export const projects = [
+  {
+    id: 'markwave',
+    name: 'Markwave',
+    what: 'Livestock health collar',
+    khz: 133.33, // the carrier we measured on the bench for the collar's tag reader
+    path: '/markwave',
   },
-  figure: 'The same carrier on our bench.',
-  picture: work.steps[3].picture,
+];
+
+export const tuner = {
+  heading: 'Tune in to open a project',
+  text:
+    'Every project sits on its own frequency. Turn the knob until the coil resonates at 133.33 kHz and the Markwave collar opens. It is the same job we did on the bench for the collar’s tag reader.',
+  range: [100, 170] as [number, number], // kHz across the dial
+  start: 112.6,
+  knob: 'Tuning capacitor',
+  auto: 'Auto-tune',
+  unit: 'kHz',
+  signal: 'Signal',
+  states: {
+    off: 'No carrier. Keep turning.',
+    near: 'Getting warmer.',
+    locked: 'Locked on. Hold it there.',
+    opening: 'Carrier locked. Opening',
+  },
+  channelsTitle: 'Channels',
+  locked: 'Locked',
+  open: 'Open',
+  free: { name: 'Your idea', what: 'This channel is free', action: 'Claim it', href: '#brief' },
+};
+
+export const project = {
+  back: 'All channels',
+  status: 'Carrier locked',
+  closing: 'Have a device like this in mind?',
+  closingButton: 'Tell us your idea',
 };
 
 export const film = {
@@ -126,6 +154,8 @@ export const process = {
   heading: 'How a project runs',
   intro:
     'You bring the idea. We say yes, no, or how, and we start. This is the usual path; the pace depends on the device.',
+  sheet: 'Datasheet',
+  columns: ['Step', 'Typical'] as [string, string],
   // Timings are typical, not promises. Confirm them before launch.
   stages: [
     { verb: 'Talk', sum: 'Week one', rows: [['We talk', 'a call'], ['We write the brief', 'a page'], ['We say yes, no, or how', 'a day']] },
@@ -138,16 +168,23 @@ export const process = {
 
 export const about = {
   heading: 'What you bring, what we bring',
+  // Drawn as a pinout: the studio is the chip, your side is the inputs, ours is the outputs.
+  chip: { part: 'PJN-01', line: 'Embedded engineering studio' },
   you: {
-    title: 'You bring',
-    items: ['The idea, even as a sketch.', 'A few hours to answer our questions.', 'The budget to build it.'],
+    title: 'In: you bring',
+    items: [
+      ['Idea', 'even as a sketch'],
+      ['Time', 'a few hours for our questions'],
+      ['Budget', 'to build it'],
+    ],
   },
   we: {
-    title: 'We bring',
+    title: 'Out: we bring',
     items: [
-      'Electronics engineers who design the board, the code and the case.',
-      'Workshop habits: breadboard, board, print, cast, test.',
-      'Distributors we already know, so parts arrive and prices hold.',
+      ['Board', 'schematic, layout, assembly'],
+      ['Firmware', 'sensing, radio and power'],
+      ['Enclosure', 'designed, printed, cast'],
+      ['Production', 'parts sourced, batches made'],
     ],
   },
   // Words wrapped in [[ ]] are highlighted.
@@ -173,11 +210,15 @@ export const brief = {
     ['Enclosure', 'an enclosure'],
     ['Production', 'a production run'],
   ],
+  contactLabel: 'How do we reach you?',
+  contactPlaceholder: 'Your phone number or email',
   lineLabel: 'In a line, what is it?',
   linePlaceholder: 'A collar that tracks a buffalo’s heat cycle',
   outLabel: 'Your brief',
-  send: 'Send this brief',
-  hintMail: 'Opens your mail app with the brief written in.',
+  whatsapp: 'Send on WhatsApp',
+  send: 'Send by email',
+  save: 'Save our number to your contacts',
+  hintMail: 'Either one opens with the brief already written. You press send.',
   hintSaved: 'Sent. We’ll write back within a few days.',
   subject: 'An idea for Panchajanyam',
   portal: 'Client sign-in',
@@ -187,5 +228,6 @@ export const footer = {
   invite: 'Start with one line.',
   button: 'Write to us',
   place: 'Embedded engineering studio, India',
+  rev: 'Rev C',
   legal: '© 2026 Panchajanyam',
 };

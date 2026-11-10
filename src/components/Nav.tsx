@@ -63,7 +63,7 @@ export default function Nav({ onHome = true }: { onHome?: boolean }) {
   return (
     <header className={'bar' + state}>
       <Link className="wordmark" to="/" onClick={() => { setOpen(false); if (onHome) window.scrollTo({ top: 0 }); }}>
-        {site.name}
+        <i className="led on" aria-hidden="true" />{site.name}
       </Link>
       <nav className="bar-links" aria-label="Sections">
         {site.nav.map((n) => item(n))}

@@ -2,7 +2,7 @@ import { useLayoutEffect, useRef } from 'react';
 import { marquee } from '../content/site';
 import { gsap, ScrollTrigger, prefersReducedMotion } from '../lib/scroll';
 
-/** A band of what we do that never stops, and runs faster the harder the page is scrolled. */
+/** What we do, as parts on a reel of carrier tape. It never stops, and runs faster the harder the page is scrolled. */
 export default function Marquee() {
   const track = useRef<HTMLDivElement>(null);
 
@@ -28,7 +28,7 @@ export default function Marquee() {
 
   const row = (hidden: boolean) => (
     <ul aria-hidden={hidden || undefined}>
-      {marquee.map((m) => <li key={m}>{m}</li>)}
+      {marquee.map((m) => <li key={m}><span className="smd">{m}</span></li>)}
     </ul>
   );
 

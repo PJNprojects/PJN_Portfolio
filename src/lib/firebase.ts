@@ -18,7 +18,7 @@ export async function firebaseApp(): Promise<FirebaseApp> {
 }
 
 /** Save a brief from the contact section. Returns false when Firebase isn't configured. */
-export async function saveBrief(data: { have: string; needs: string[]; line: string; text: string }) {
+export async function saveBrief(data: { have: string; needs: string[]; line: string; contact: string; text: string }) {
   if (!hasFirebase) return false;
   const { getFirestore, collection, addDoc, serverTimestamp } = await import('firebase/firestore');
   await addDoc(collection(getFirestore(await firebaseApp()), 'briefs'), {

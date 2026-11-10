@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { work } from '../content/site';
-import { useReveal } from '../lib/useReveal';
 import { gsap, ScrollTrigger, hasFinePointer, prefersReducedMotion, scrollTo } from '../lib/scroll';
+import { Chip, Silk, Traces } from './board';
 
 /**
  * The teardown. One frame holds its place while the page scrolls; each step of text that passes
@@ -9,7 +9,6 @@ import { gsap, ScrollTrigger, hasFinePointer, prefersReducedMotion, scrollTo } f
  * outside in, then onto the bench.
  */
 export default function Work() {
-  const head = useReveal<HTMLDivElement>();
   const root = useRef<HTMLDivElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const [active, setActive] = useState(0);
@@ -78,28 +77,23 @@ export default function Work() {
   };
 
   return (
-    <section className="work" id="work">
-      <div className="work-head reveal" ref={head}>
-        <h2 className="poster">{work.heading}</h2>
-        <p className="lead">{work.intro}</p>
-      </div>
-
+    <section className="work board" id="work" aria-label="The parts of the collar">
+      <Traces seed={11} fill={0.45} />
       <div className="tear" ref={root}>
         <div className="tear-hold">
-          <div className="tear-frame" ref={frame}>
+          <Chip className="tear-frame" ref={frame}>
             {work.steps.map((s, i) => (
               <img key={s.title} className={i <= active ? 'is-on' : ''} src={s.picture.src} srcSet={s.picture.srcSet}
                 sizes="(max-width: 760px) 92vw, 40vw" width={s.picture.width} height={s.picture.height}
                 alt={s.picture.alt} loading="lazy" decoding="async" />
             ))}
-            <p className="tear-label" aria-hidden="true">{work.steps[active].label}</p>
             <div className="tear-dots" role="group" aria-label="Parts of the collar">
               {work.steps.map((s, i) => (
                 <button key={s.title} type="button" aria-label={s.title} aria-current={i === active ? 'step' : undefined}
                   onClick={() => goTo(i)} />
               ))}
             </div>
-          </div>
+          </Chip>
         </div>
 
         <ol className="tear-steps">
@@ -108,11 +102,12 @@ export default function Work() {
               {/* Shown on phones only, where each step is a card with its own picture. */}
               <img className="tear-inline" src={s.picture.src} srcSet={s.picture.srcSet} sizes="86vw"
                 width={s.picture.width} height={s.picture.height} alt={s.picture.alt} loading="lazy" decoding="async" />
-              <h3 className="poster">{s.title}</h3>
+              <Silk mark={`U${i + 2}`}>{s.label}</Silk>
+              <h2 className="poster">{s.title}</h2>
               <p>{s.text}</p>
               <div className="proves">
                 <p>{work.provesLabel}</p>
-                <ul>{s.proves.map((x) => <li key={x}>{x}</li>)}</ul>
+                <ul>{s.proves.map((x) => <li key={x} className="smd">{x}</li>)}</ul>
               </div>
             </li>
           ))}
