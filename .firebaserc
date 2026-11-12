@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "pjn-projects"
-  }
+    "default": "pjnportfolio",
+    "pj": "pjnportfolio"
+  },
+  "targets": {},
+  "etags": {}
 }
